@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Jegyzetek</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: auto; }
+        h1 { text-align: center; color: #bb86fc; }
+        textarea, input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: none; box-sizing: border-box; }
+        textarea { height: 100px; resize: none; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #03dac6; color: black; font-weight: bold; cursor: pointer; }
+        .note-card { background: #1e1e1e; padding: 15px; border-radius: 10px; margin-top: 15px; border-left: 5px solid #bb86fc; position: relative; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; color: #cf6679; cursor: pointer; font-weight: bold; }
+        .note-date { font-size: 10px; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pro Jegyzetek</h1>
+        <input type="text" id="noteTitle" placeholder="Cím...">
+        <textarea id="noteContent" placeholder="Írj valamit..."></textarea>
+        <button onclick="saveNote()">Jegyzet Mentése</button>
+        <div id="notesList"></div>
+    </div>
+
+    <script>
+        function saveNote() {
+            const title = document.getElementById('noteTitle').value;
+            const content = document.getElementById('noteContent').value;
+            if (!title || !content) return;
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            notes.push({ title, content, date: new Date().toLocaleString() });
+            localStorage.setItem('notes', JSON.stringify(notes));
+            document.getElementById('noteTitle').value = '';
+            document.getElementById('noteContent').value = '';
+            displayNotes();
+        }
+
+        function displayNotes() {
+            const list = document.getElementById('notesList');
+            list.innerHTML = '';
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            notes.reverse().forEach((note, index) => {
+                list.innerHTML += `
+                    <div class="note-card">
+                        <span class="delete-btn" onclick="deleteNote(${notes.length - 1 - index})">X</span>
+                        <strong>${note.title}</strong><br>
+                        <p>${note.content}</p>
+                        <span class="note-date">${note.date}</span>
+                    </div>`;
+            });
+        }
+
+        function deleteNote(index) {
+            const notes = JSON.parse(localStorage.getItem('notes') || '[]');
+            notes.splice(index, 1);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            displayNotes();
+        }
+
+        displayNotes();
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
