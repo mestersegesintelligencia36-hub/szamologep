@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=2.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>6.1 Számoló</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * { box-sizing: border-box; user-select: none; touch-action: none; -webkit-tap-highlight-color: transparent; }
+        html, body { background: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; position: fixed; }
+        
+        .calc { 
+            background: #000; 
+            width: 100%; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; /* Szétnyújtjuk a tartalmat */
+            padding: 20px; 
+            padding-bottom: calc(40px + env(safe-area-inset-bottom)); 
+        }
+
+        /* BRUTÁLIS KIJELZŐ MÉRET */
+        .display { 
+            font-size: 120px; 
+            text-align: right; 
+            width: 100%;
+            margin-top: auto;
+            margin-bottom: 20px; 
+            padding: 10px; 
+            word-wrap: break-word; 
+            pointer-events: none;
+            font-weight: 300;
+            line-height: 1;
+        }
+
+        .buttons { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; 
+            width: 100%;
+        }
+
+        /* NAGYOBB GOMBOK */
+        button { 
+            border: none; 
+            border-radius: 50%; 
+            width: 100%;
+            aspect-ratio: 1/1; 
+            font-size: 38px; /* Extra nagy számok a gombokon */
+            cursor: pointer; 
+            background: #333; 
+            color: #fff; 
+            outline: none; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button:active { background: #555; }
+        .orange { background: #ff9f0a; font-size: 45px; }
+        .gray { background: #a5a5a5; color: #000; font-weight: bold; font-size: 32px; }
+        .zero { grid-column: span 2; aspect-ratio: auto; border-radius: 50px; text-align: left; padding-left: 40px; justify-content: flex-start; height: 100%; }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+    <div class="calc">
+        <div class="display" id="d">0</div>
+        <div class="buttons">
+            <button class="gray" onclick="v(); cls()">C</button>
+            <button class="gray" onclick="v(); sign()">+/-</button>
+            <button class="gray" onclick="v()">%</button>
+            <button class="orange" onclick="v(); add('/')">÷</button>
+            <button onclick="v(); add('7')">7</button><button onclick="v(); add('8')">8</button><button onclick="v(); add('9')">9</button>
+            <button class="orange" onclick="v(); add('*')">×</button>
+            <button onclick="v(); add('4')">4</button><button onclick="v(); add('5')">5</button><button onclick="v(); add('6')">6</button>
+            <button class="orange" onclick="v(); add('-')">−</button>
+            <button onclick="v(); add('1')">1</button><button onclick="v(); add('2')">2</button><button onclick="v(); add('3')">3</button>
+            <button class="orange" onclick="v(); add('+')">+</button>
+            <button class="zero" onclick="v(); add('0')">0</button>
+            <button onclick="v(); add('.')">.</button>
+            <button class="orange" onclick="v(); res()">=</button>
+        </div>
+    </div>
+    <script>
+        let d = document.getElementById('d');
+        function v() { if(navigator.vibrate) navigator.vibrate(45); }
+        function add(v) { 
+            if(d.innerText === '0' && !isNaN(v)) d.innerText = v; 
+            else d.innerText += v; 
+            adj(); 
+        }
+        function cls() { d.innerText = '0'; adj(); }
+        function sign() { d.innerText = d.innerText.startsWith('-') ? d.innerText.slice(1) : '-' + d.innerText; }
+        function adj() {
+            let l = d.innerText.length;
+            if(l < 5) d.style.fontSize = '120px';
+            else if(l < 8) d.style.fontSize = '80px';
+            else d.style.fontSize = '50px';
+        }
+        function res() {
+            try { 
+                let r = eval(d.innerText.replace('×','*').replace('÷','/').replace('−','-'));
+                d.innerText = Number.isInteger(r) ? r : parseFloat(r.toFixed(6));
+                adj(); 
+            } catch { d.innerText = 'Hiba'; }
+        }
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    </script>
+</body>
+</html>
